@@ -1,7 +1,8 @@
 import fs from 'fs';
-import https from 'https'
-import sharp from 'sharp'
+import https from 'https';
 import { jsPDF } from 'jspdf';
+import os from 'os';
+import sharp from 'sharp';
 
 export const uploadImage = (req, res) => {
 	const reqFiles = req.files;
@@ -59,8 +60,30 @@ export const uploadImage = (req, res) => {
 
 export const printPDF = async (req, res) => {
 
+	let theme = parseInt(req.query.theme);
 	const targetFile = `banners/banner.png`
-	const wallpaperUrl = 'https://source.unsplash.com/featured/1080x1920/?grass'
+	let wallpaperUrl = 'https://source.unsplash.com/featured/1080x1920/';
+
+	switch (theme) {
+		case 1:
+			wallpaperUrl = 'https://source.unsplash.com/featured/1080x1920/?mountains';
+			break;
+		case 2:
+			wallpaperUrl = 'https://source.unsplash.com/featured/1080x1920/?forest';
+			break;
+		case 3:
+			wallpaperUrl = 'https://source.unsplash.com/featured/1080x1920/?sunset';
+			break;
+		case 4:
+			wallpaperUrl = 'https://source.unsplash.com/featured/1080x1920/?sea';
+			break;
+		case 5:
+			wallpaperUrl = 'https://source.unsplash.com/featured/1080x1920';
+			break;
+		default:
+			wallpaperUrl = 'https://source.unsplash.com/featured/1080x1920';
+	}
+
 	await downloadFile(wallpaperUrl, targetFile)
 
 	setTimeout(() => {
@@ -69,7 +92,9 @@ export const printPDF = async (req, res) => {
 		fs.readdir('./data/', (err, files) => {
 			let numberArray = [1];
 			files.forEach((file) => {
-				numberArray.push(parseInt(file.slice(-1)));
+				if (file.includes('pdf') && !isNaN(parseInt(file.slice(-1)))) {
+					numberArray.push(parseInt(file.slice(-1)));
+				}
 			})
 			currentFolderNumber = Math.max(...numberArray);
 
@@ -156,11 +181,20 @@ export const printPDF = async (req, res) => {
 				if (!fs.existsSync(`./data/pdf${currentFolderNumber + 1}`)) {
 					fs.mkdirSync(`./data/pdf${currentFolderNumber + 1}`);
 				}
+
+				try {
+					var networkInterfaces = os.networkInterfaces();
+					let wifiIPv4Address = networkInterfaces['Wi-Fi'][1].address;
+
+					res.json({ url: `${wifiIPv4Address}:3001/data/pdf${currentFolderNumber}/doc.pdf` });
+				}
+				catch (e) {
+					console.log(e);
+					res.json({ url: `192.168.1.10:3001/data/pdf${currentFolderNumber}/doc.pdf` });
+				}
 			}, 2000)
 
-		});
-
-		res.sendStatus(200);
+		})
 
 	}, 1000)
 };
