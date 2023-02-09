@@ -33,7 +33,7 @@ export const uploadImage = (req, res) => {
 
 					if (fileNeedRotation) {
 						sharp(filepath)
-							.rotate(-90)
+							.rotate(90)
 							.resize({ width: 1024, height: 1024, fit: "cover" })
 							.toFile(`./data/pdf${currentFolderNumber}/img${currentPhotoNumber + 1}.jpg`);
 
